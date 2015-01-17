@@ -8,7 +8,7 @@ set -e
 # - mysql
 # - redis
 # - git 1.7.6+
-# - ruby 1.9.3-p194
+# - ruby 1.9.3-p551
 # As long as these dependencies are met, you can proceed to the "Clone Barkeep" step.
 # If you don't want to set up a reverse proxy you can skip installing and configuring nginx.
 
@@ -22,14 +22,14 @@ sudo apt-get -y install python-software-properties
 sudo add-apt-repository -y ppa:git-core/ppa && sudo apt-get update
 sudo apt-get install -y git
 
-# Install ruby 1.9.3-p194
+# Install ruby 1.9.3-p551
 git clone git://github.com/sstephenson/rbenv.git ~/.rbenv
 echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.profile
 echo 'eval "$(rbenv init -)"' >> ~/.profile
 source ~/.profile
 git clone git://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
-rbenv install 1.9.3-p194
-rbenv global 1.9.3-p194
+rbenv install 1.9.3-p551
+rbenv global 1.9.3-p551
 gem install bundler
 rbenv rehash
 
