@@ -9,9 +9,6 @@ require "open-uri"
 require "signet"
 require "signet/oauth_2"
 require "signet/oauth_2/client"
-require "openid"
-require "openid/extensions/ax"
-require "openid/store/filesystem"
 require "pinion"
 require "pinion/sinatra_helpers"
 require "redcarpet"
@@ -42,16 +39,12 @@ require "lib/mustache_renderer"
 require "resque_jobs/deliver_review_request_emails.rb"
 
 NODE_MODULES_BIN_PATH = "./node_modules/.bin"
-OPENID_AX_EMAIL_SCHEMA = "http://axschema.org/contact/email"
 UNAUTHENTICATED_ROUTES = ["/signin", "/signout", "/inspire", "/statusz", "/api/", "/connect"]
 # NOTE(philc): Currently we let you see previews of individual commits and the code review stats without
 # being logged in, as a friendly UX. When we flesh out our auth model, we should intentionally make this
 # configurable.
 UNAUTHENTICATED_PREVIEW_ROUTES = ["/commits/", "/stats"]
 
-
-# OPENID_PROVIDERS is a string env variable. It's a comma-separated list of OpenID providers.
-OPENID_PROVIDERS_ARRAY = OPENID_PROVIDERS.split(",")
 
 class BarkeepServer < Sinatra::Base
   attr_accessor :current_user
@@ -108,8 +101,6 @@ class BarkeepServer < Sinatra::Base
 
   # Session hijacking protection breaks Chrome sessions and offers little protection anyway
   set :protection, except: :session_hijacking
-
-  raise "You must have an OpenID provider defined in OPENID_PROVIDERS." if OPENID_PROVIDERS.empty?
 
 
   configure :development do
@@ -220,19 +211,7 @@ class BarkeepServer < Sinatra::Base
 
   end
 
-  get "/signin/select_openid_provider" do
-    erb :select_openid_provider, :locals => { :openid_providers => OPENID_PROVIDERS_ARRAY }
-  end
-
-  # Users navigate to here from select_openid_provider.
-  # - provider_id: an integer indicating which provider from OPENID_PROVIDERS_ARRAY to use for authentication.
-  get "/signin/signin_using_openid_provider" do
-    provider = OPENID_PROVIDERS_ARRAY[params[:provider_id].to_i]
-    halt 400, "OpenID provider not found." unless provider
-    redirect get_oauth2_authorization_url
-  end
-
-  # Handle login complete from openid provider.
+  # Handle login complete from oauth2 provider.
   get "/signin/complete" do
     client = get_signet_client
 
@@ -563,8 +542,7 @@ class BarkeepServer < Sinatra::Base
 
   def logged_in?() current_user && !current_user.demo? end
 
-
-  # Construct redirect url to google openid.
+  # Construct oauth client
   def get_signet_client
     Signet::OAuth2::Client.new(
         :authorization_uri => 'https://accounts.google.com/o/oauth2/auth',
@@ -575,6 +553,7 @@ class BarkeepServer < Sinatra::Base
         :scope => 'email')
   end
 
+  # Construct redirect url to google oauth.
   def get_oauth2_authorization_url
     client = get_signet_client
     client.grant_type = 'authorization_code'
