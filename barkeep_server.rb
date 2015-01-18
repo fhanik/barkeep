@@ -213,6 +213,11 @@ class BarkeepServer < Sinatra::Base
 
   # Handle login complete from oauth2 provider.
   get "/signin/complete" do
+
+    unless params[:state] == session[:state]
+      halt 400, "Wrong state passed by client"
+    end
+    
     client = get_signet_client
 
     client.code = params[:code]
@@ -236,6 +241,7 @@ class BarkeepServer < Sinatra::Base
       User.new(:email => email, :name => email, :permission => permission).save
     end
     redirect session[:login_started_url] || "/"
+
 
   end
 
@@ -559,7 +565,10 @@ class BarkeepServer < Sinatra::Base
   def get_oauth2_authorization_url
     client = get_signet_client
     client.grant_type = 'authorization_code'
-    client.state = (0...13).map{('a'..'z').to_a[rand(26)]}.join
+
+    state = (0...13).map{('a'..'z').to_a[rand(26)]}.join
+    client.state = state
+    session[:state] = state
 
     client.authorization_uri.to_s
   end
