@@ -544,12 +544,14 @@ class BarkeepServer < Sinatra::Base
 
   # Construct oauth client
   def get_signet_client
+    host = "#{request.scheme}://#{request.host_with_port}"
+
     Signet::OAuth2::Client.new(
         :authorization_uri => 'https://accounts.google.com/o/oauth2/auth',
         :token_credential_uri => 'https://accounts.google.com/o/oauth2/token',
         :client_id => '208334883388-5e34t9slgi6g0t8f69935c1e1g7t881l@developer.gserviceaccount.com',
         :client_secret => 'I7_Fu7fEJaCORYyEdM-WjtWy',
-        :redirect_uri => 'http://localhost:8040/signin/complete',
+        :redirect_uri => "#{host}/signin/complete",
         :scope => 'email')
   end
 
