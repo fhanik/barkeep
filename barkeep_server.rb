@@ -195,7 +195,7 @@ class BarkeepServer < Sinatra::Base
 
       # Save url to return to it after login completes.
       session[:login_started_url] = request.url
-      redirect to(get_oauth2_authorization_url), 303
+      redirect get_oauth2_authorization_url
     end
   end
 
