@@ -54,7 +54,9 @@ class MetaRepo
     end
   end
 
-  def get_grit_repo(name_or_id) @repo_names_and_ids_to_repos[name_or_id] end
+  def get_grit_repo(name_or_id)
+    @repo_names_and_ids_to_repos[name_or_id]
+  end
 
   def db_commit(repo_name, sha)
     Commit[:git_repo_id => @repo_name_to_id[repo_name], :sha => sha]
@@ -360,7 +362,7 @@ class MetaRepo
   # Creates a new Grit::Repo object for the given path.
   def create_grit_repo_for_name(repo_name)
     path = Pathname.new(File.join(@repos_root, repo_name)).realpath.to_s
-    grit_repo = Grit::Repo.new(path)
+    grit_repo = Grit::Repo.init(path)
     grit_repo.name = repo_name
     grit_repo
   end
