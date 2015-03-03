@@ -39,11 +39,13 @@ require "lib/mustache_renderer"
 require "resque_jobs/deliver_review_request_emails.rb"
 
 NODE_MODULES_BIN_PATH = "./node_modules/.bin"
-UNAUTHENTICATED_ROUTES = ["/signin", "/signout", "/inspire", "/statusz", "/api/", "/connect"]
+#UNAUTHENTICATED_ROUTES = ["/signin", "/signout", "/inspire", "/statusz", "/api/", "/connect"]
+UNAUTHENTICATED_ROUTES = ["/signin", "/signout"]
 # NOTE(philc): Currently we let you see previews of individual commits and the code review stats without
 # being logged in, as a friendly UX. When we flesh out our auth model, we should intentionally make this
 # configurable.
-UNAUTHENTICATED_PREVIEW_ROUTES = ["/commits/", "/stats"]
+#UNAUTHENTICATED_PREVIEW_ROUTES = ["/commits/", "/stats"]
+UNAUTHENTICATED_PREVIEW_ROUTES = []
 
 
 class BarkeepServer < Sinatra::Base
@@ -228,12 +230,16 @@ class BarkeepServer < Sinatra::Base
     json_body = Base64.decode64(encoded_json_body)
     body = JSON.parse(json_body)
     email = body['email']
-    session[:email] = email
+    #session[:email] = email
     if defined?(PERMITTED_USERS) && !PERMITTED_USERS.empty?
       unless PERMITTED_USERS.split(",").map(&:strip).include?(email)
         halt 401, "Your email #{email} is not authorized to login to Barkeep."
       end
     end
+    unless email.end_with? "@pivotal.io"
+      halt 401, "Your email #{email} is not authorized to login to Barkeep."
+    end
+    session[:email] = email
 
     unless User.find(:email => email)
       # If there are no admin users yet, make the first user to log in the first admin.
@@ -555,8 +561,8 @@ class BarkeepServer < Sinatra::Base
     Signet::OAuth2::Client.new(
         :authorization_uri => 'https://accounts.google.com/o/oauth2/auth',
         :token_credential_uri => 'https://accounts.google.com/o/oauth2/token',
-        :client_id => '208334883388-5e34t9slgi6g0t8f69935c1e1g7t881l@developer.gserviceaccount.com',
-        :client_secret => 'I7_Fu7fEJaCORYyEdM-WjtWy',
+        :client_id => '469072988961-fcbprht3crl87779t2lmt3tleuaneem1.apps.googleusercontent.com',
+        :client_secret => 'ujkg0Vc92N4RyRxkBd1qWbz7',
         :redirect_uri => "#{host}/signin/complete",
         :scope => 'email')
   end

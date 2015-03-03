@@ -2,6 +2,8 @@ require "pony"
 require "tilt"
 require "lib/string_helper"
 require "lib/git_diff_utils"
+require "net/http"
+require "uri"
 
 # Methods for sending various emails, like comment notifications and new commit notifications.
 class Emails
@@ -57,7 +59,8 @@ class Emails
     all_previous_commenters = commit.comments.map(&:user).reject(&:demo?).reject(&:deleted?)
     author = commit.grit_commit.author
     user = User.find(:email => author.email)
-    to << author.email if user && !user.deleted?
+    #to << author.email if user && !user.deleted?
+    to << author.email
     # There shouldn't be deleted users with saved searches, but filter them out just in case.
     cc = (users_with_saved_searches_matching(commit, :email_comments => true).reject(&:deleted?) +
           all_previous_commenters).map(&:email).uniq
